@@ -35,3 +35,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class LoginSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['email', 'password']
+
+    def validate(self, attrs):
+        if not User.objects.filter(email=attrs["email"]).exists():
+            raise serializers.ValidationError('Email does not exist')
+
+        user = User.objects.filter(email=attrs["email"]).first()
+
+        if not user.check_password(attrs["password"]):
+            raise serializers.ValidationError('Password is wrong')
+        
+        attrs["user"] = user
+        return attrs
