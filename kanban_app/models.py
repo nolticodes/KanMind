@@ -21,12 +21,17 @@ class Board(models.Model):
 class Task(models.Model):
 
     STATUS_CHOICES = [
-        ("to-do"), ("in-progress"), ("review"), ("done"),
-    ]
+        ("to-do", "To Do"),
+        ("in-progress", "In Progress"),
+        ("review", "Review"),
+        ("done", "Done"),
+]
 
     PRIORITY_CHOICES = [
-        ("low"), ("medium"), ("high"),
-    ]
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+]
 
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name="tasks")
     title = models.CharField(max_length=255)
