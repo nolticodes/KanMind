@@ -112,7 +112,7 @@ class PatchBoardDetailResponseSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'title',
-            'owner_data'
+            'owner_data',
             'members_data'
         ]
 
