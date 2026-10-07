@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from kanban_app.models import Board, Task
+from auth_app.models import User
+
 
 class GetBoardsListSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
@@ -38,3 +40,57 @@ class CreateBoardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Board
         fields = ['title', 'members']
+
+
+class UserSummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "fullname",
+        ]
+
+class BoardTaskInfoSerializer(serializers.ModelSerializer):
+    assignee = UserSummarySerializer(read_only=True)
+    reviewer = UserSummarySerializer(read_only=True)
+
+    comments_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            "comments_count",
+        ]
+
+    def get_comments_count(self, obj):
+        return 0
+
+class GetBoardDetailSerializer(serializers.ModelSerializer):
+    members = UserSummarySerializer(
+        many = True,
+        read_only = True
+    )
+
+    tasks = BoardTaskInfoSerializer(
+        many = True,
+        read_only = True
+    )
+
+    class Meta: 
+        model = Board
+        fields = [
+            'id',
+            'title',
+            'owner_id',
+            'members',
+            'tasks',
+        ]
