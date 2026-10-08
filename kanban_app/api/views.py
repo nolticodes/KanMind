@@ -7,22 +7,32 @@ from django.contrib.auth import get_user_model          # später entfernen
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
-from kanban_app.models import Board
+from kanban_app.models import Board, Task
 from auth_app.models import User
 
-from .serializers import GetBoardsListSerializer, CreateBoardSerializer, GetBoardDetailSerializer, PatchBoardDetailResponseSerializer, PatchBoardDetailRequestSerializer, UserSummarySerializer
+from .serializers import (
+    GetBoardsListSerializer,
+    CreateBoardSerializer,
+    GetBoardDetailSerializer,
+    PatchBoardDetailResponseSerializer,
+    PatchBoardDetailRequestSerializer,
+    UserSummarySerializer,
+    PostTaskInBoardRequestSerializer,
+    PostTaskInBoardResponseSerializer
+)
+
 
 class BoardView(generics.ListCreateAPIView):
 
     queryset = Board.objects.all()
     permission_classes = [AllowAny]
-    
+
     def get_serializer_class(self):
         if self.request.method == "GET":
             return GetBoardsListSerializer
         if self.request.method == "POST":
             return CreateBoardSerializer
-    
+
     def perform_create(self, serializer):
         # serializer.save(owner=self.request.user)  -> Später wieder hinzufügen, rest unten entfernen
         User = get_user_model()
@@ -41,6 +51,7 @@ class BoardView(generics.ListCreateAPIView):
             response_serializer.data,
             status=status.HTTP_201_CREATED
         )
+
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
@@ -73,7 +84,8 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             response_serializer.data,
             status=status.HTTP_200_OK
         )
-                
+
+
 class FindUserWithEmailView(APIView):
 
     permission_classes = [AllowAny]
@@ -109,6 +121,20 @@ class FindUserWithEmailView(APIView):
             status=status.HTTP_200_OK
         )
 
-        
 
+class CreateTaskInBoardView(generics.CreateAPIView):
+    serializer_class = PostTaskInBoardRequestSerializer
+    permission_classes = [AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+
+        response_serializer = PostTaskInBoardResponseSerializer(serializer.instance)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
