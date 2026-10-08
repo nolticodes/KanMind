@@ -18,7 +18,9 @@ from .serializers import (
     PatchBoardDetailRequestSerializer,
     UserSummarySerializer,
     PostTaskInBoardRequestSerializer,
-    PostTaskInBoardResponseSerializer
+    PostTaskInBoardResponseSerializer,
+    PatchTaskInBoardRequestSerializer,
+    PatchTaskInBoardResponseSerializer,
 )
 
 
@@ -98,7 +100,6 @@ class FindUserWithEmailView(APIView):
                 {"detail": "Email is required."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         try:
             validate_email(email)
         except ValidationError:
@@ -132,9 +133,37 @@ class CreateTaskInBoardView(generics.CreateAPIView):
 
         self.perform_create(serializer)
 
-        response_serializer = PostTaskInBoardResponseSerializer(serializer.instance)
+        response_serializer = PostTaskInBoardResponseSerializer(
+            serializer.instance)
 
         return Response(
             response_serializer.data,
             status=status.HTTP_201_CREATED
+        )
+
+
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [AllowAny]
+    queryset = Task.objects.all()
+    serializer_class = PatchTaskInBoardRequestSerializer
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_update(serializer)
+
+        response_serializer = PatchTaskInBoardResponseSerializer(
+            serializer.instance)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_200_OK
         )
