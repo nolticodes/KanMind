@@ -187,3 +187,56 @@ class PostTaskInBoardResponseSerializer(serializers.ModelSerializer):
 
     def get_comments_count(self, obj):
         return 0
+
+
+class PatchTaskInBoardRequestSerializer(serializers.ModelSerializer):
+
+    assignee_id = serializers.PrimaryKeyRelatedField(
+        source="assignee",
+        queryset=User.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
+    reviewer_id = serializers.PrimaryKeyRelatedField(
+        source="reviewer",
+        queryset=User.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
+    class Meta:
+        model = Task
+        fields = [
+            'title',
+            'description',
+            'status',
+            'priority',
+            'assignee_id',
+            'reviewer_id',
+            'due_date'
+        ]
+
+
+class PatchTaskInBoardResponseSerializer(serializers.ModelSerializer):
+
+    assignee = UserSummarySerializer(
+        read_only=True
+    )
+
+    reviewer = UserSummarySerializer(
+        read_only=True
+    )
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'title',
+            'description',
+            'status',
+            'priority',
+            'assignee',
+            'reviewer',
+            'due_date'
+        ]
