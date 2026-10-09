@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kanban_app.models import Board, Task
+from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
 
 
@@ -239,4 +239,16 @@ class PatchTaskInBoardResponseSerializer(serializers.ModelSerializer):
             'assignee',
             'reviewer',
             'due_date'
+        ]
+
+
+class GetCommentsListSerializer(serializers.ModelSerializer):
+
+    class Meta: 
+        model = Comment
+        fields = [
+            'id',
+            'created_at',
+            'author',
+            'content'
         ]

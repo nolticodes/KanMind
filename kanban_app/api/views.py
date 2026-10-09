@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model          # später entfernen
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 from kanban_app.models import Board, Task
 from auth_app.models import User
@@ -21,6 +22,7 @@ from .serializers import (
     PostTaskInBoardResponseSerializer,
     PatchTaskInBoardRequestSerializer,
     PatchTaskInBoardResponseSerializer,
+    GetCommentsListSerializer,
 )
 
 
@@ -167,3 +169,26 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
             response_serializer.data,
             status=status.HTTP_200_OK
         )
+
+
+class CommentsListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+
+        task_id = kwargs.get("task_id")
+
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return Response(
+                {"detail": "Task ID not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        queryset = task.comments.all().order_by("created_at")
+        serializer = GetCommentsListSerializer(task, many = True)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
