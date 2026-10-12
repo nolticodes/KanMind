@@ -244,6 +244,11 @@ class PatchTaskInBoardResponseSerializer(serializers.ModelSerializer):
 
 class GetCommentsListSerializer(serializers.ModelSerializer):
 
+    author = serializers.CharField(
+        source="author.fullname",
+        read_only=True
+    )
+
     class Meta: 
         model = Comment
         fields = [
@@ -252,3 +257,12 @@ class GetCommentsListSerializer(serializers.ModelSerializer):
             'author',
             'content'
         ]
+
+class PostCommentsInListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Comment
+        fields = [
+            'content'
+        ]
+

@@ -8,7 +8,7 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from kanban_app.models import Board, Task
+from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
 
 from .serializers import (
@@ -23,6 +23,7 @@ from .serializers import (
     PatchTaskInBoardRequestSerializer,
     PatchTaskInBoardResponseSerializer,
     GetCommentsListSerializer,
+    PostCommentsInListSerializer,
 )
 
 
@@ -171,24 +172,65 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         )
 
 
-class CommentsListView(APIView):
+class CommentsListView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    permission_classes = [AllowAny]
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return GetCommentsListSerializer
+
+        if self.request.method == "POST":
+            return PostCommentsInListSerializer
+
+        return GetCommentsListSerializer
 
     def get(self, request, *args, **kwargs):
-
         task_id = kwargs.get("task_id")
 
         try:
             task = Task.objects.get(id=task_id)
         except Task.DoesNotExist:
             return Response(
-                {"detail": "Task ID not found"},
+                {"detail": "Task not found"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         queryset = task.comments.all().order_by("created_at")
-        serializer = GetCommentsListSerializer(task, many = True)
+        serializer = GetCommentsListSerializer(queryset, many=True)
+
         return Response(
             serializer.data,
             status=status.HTTP_200_OK
         )
 
+    def create(self, request, *args, **kwargs):
+        task_id = kwargs.get("task_id")
+
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return Response(
+                {"detail": "Task not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        User = get_user_model()
+        test_user = User.objects.get(email="example@mail.de")
+
+        serializer.save(
+            task=task,
+            author=test_user
+        )
+
+        response_serializer = GetCommentsListSerializer(
+            serializer.instance
+        )
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
