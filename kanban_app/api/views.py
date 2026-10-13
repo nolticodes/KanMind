@@ -70,7 +70,8 @@ class BoardView(generics.ListCreateAPIView):
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Board.objects.all()
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsBoardOwnerOrMember]
 
     def get_serializer_class(self):
         if self.request.method == "GET":
