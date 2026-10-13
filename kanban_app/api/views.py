@@ -13,7 +13,7 @@ from django.db.models import Q
 from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
 
-from .permissions import IsBoardOwnerOrMember, IsMember
+from .permissions import IsBoardOwnerOrMember, IsMember, IsMemberForTask, IsTaskCreatorOrBoardOwner
 
 from .serializers import (
     GetBoardsListSerializer,
@@ -34,7 +34,7 @@ from .serializers import (
 class BoardView(generics.ListCreateAPIView):
 
     queryset = Board.objects.all()
-    authentication_classes = [TokenAuthentication] 
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsBoardOwnerOrMember]
 
     def get_queryset(self):
@@ -70,7 +70,7 @@ class BoardView(generics.ListCreateAPIView):
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Board.objects.all()
-    authentication_classes = [TokenAuthentication] 
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsBoardOwnerOrMember]
 
     def get_serializer_class(self):
@@ -103,7 +103,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FindUserWithEmailView(APIView):
 
-    authentication_classes =[TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -158,9 +158,16 @@ class CreateTaskInBoardView(generics.CreateAPIView):
 
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsMemberForTask]
     queryset = Task.objects.all()
     serializer_class = PatchTaskInBoardRequestSerializer
+
+    def get_permissions(self):
+        if self.request.method == "PATCH":
+            return [IsMemberForTask()]
+        if self.request.method == "DELETE":
+            return [IsTaskCreatorOrBoardOwner()]
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
