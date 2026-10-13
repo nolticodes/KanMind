@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from django.contrib.auth import get_user_model          # später entfernen
@@ -103,7 +103,8 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class FindUserWithEmailView(APIView):
 
-    permission_classes = [AllowAny]
+    authentication_classes =[TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         email = request.query_params.get("email")
