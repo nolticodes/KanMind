@@ -234,3 +234,15 @@ class CommentsListView(generics.ListCreateAPIView):
             response_serializer.data,
             status=status.HTTP_201_CREATED
         )
+
+
+class CommentIDView(generics.DestroyAPIView):
+
+    permission_classes = [AllowAny]
+    queryset = Comment.objects.all()
+    lookup_url_kwarg = "comment_id"
+
+    def get_queryset(self):
+        return Comment.objects.filter(
+            task_id=self.kwargs["task_id"]
+        )
