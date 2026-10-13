@@ -55,6 +55,9 @@ class Task(models.Model):
         related_name="review_tasks",
     )
     due_date = models.DateField()
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL,
+            on_delete=models.CASCADE,
+            related_name="owned_tasks")
 
 
 class Comment(models.Model):
