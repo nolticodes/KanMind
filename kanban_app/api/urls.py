@@ -6,6 +6,7 @@ from .views import (
     CreateTaskInBoardView,
     TaskDetailView,
     CommentsListView,
+    CommentIDView,
     )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path("tasks/", CreateTaskInBoardView.as_view(), name="create-task"),
     path("tasks/<int:pk>/", TaskDetailView.as_view(), name="patch-delete-task"),
     path("tasks/<int:task_id>/comments/", CommentsListView.as_view(), name="task-comments"),
+    path("tasks/<int:task_id>/comments/<int:comment_id>/", CommentIDView.as_view(), name="comment-id"),
 ]
