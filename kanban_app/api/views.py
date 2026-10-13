@@ -7,9 +7,12 @@ from django.contrib.auth import get_user_model          # später entfernen
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
+
+from .permissions import IsBoardOwnerOrMember
 
 from .serializers import (
     GetBoardsListSerializer,
@@ -32,17 +35,21 @@ class BoardView(generics.ListCreateAPIView):
     queryset = Board.objects.all()
     permission_classes = [AllowAny]
 
+    def get_queryset(self):
+        return Board.objects.filter(
+            Q(owner=self.request.user)
+            | Q(members=self.request.user)
+        ).distinct()
+
     def get_serializer_class(self):
         if self.request.method == "GET":
             return GetBoardsListSerializer
         if self.request.method == "POST":
             return CreateBoardSerializer
+        return GetBoardsListSerializer
 
     def perform_create(self, serializer):
-        # serializer.save(owner=self.request.user)  -> Später wieder hinzufügen, rest unten entfernen
-        User = get_user_model()
-        test_user = User.objects.get(email="example@mail.de")
-        serializer.save(owner=test_user)
+        serializer.save(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
