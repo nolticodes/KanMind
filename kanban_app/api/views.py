@@ -13,7 +13,7 @@ from django.db.models import Q
 from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
 
-from .permissions import IsBoardOwnerOrMember
+from .permissions import IsBoardOwnerOrMember, IsMember
 
 from .serializers import (
     GetBoardsListSerializer,
@@ -139,7 +139,8 @@ class FindUserWithEmailView(APIView):
 
 class CreateTaskInBoardView(generics.CreateAPIView):
     serializer_class = PostTaskInBoardRequestSerializer
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsMember]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
