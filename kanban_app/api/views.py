@@ -28,6 +28,7 @@ from .serializers import (
     PatchTaskInBoardResponseSerializer,
     GetCommentsListSerializer,
     PostCommentsInListSerializer,
+    GetTasksAssignedToMeSerializer
 )
 
 
@@ -260,3 +261,22 @@ class CommentIDView(generics.DestroyAPIView):
         return Comment.objects.filter(
             task_id=self.kwargs["task_id"]
         )
+
+
+class AssigneeView(generics.ListAPIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GetTasksAssignedToMeSerializer
+
+    def get_queryset (self): 
+        return Task.objects.filter(assignee = self.request.user)
+
+class ReviewerView(generics.ListAPIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    serializer_class = GetTasksAssignedToMeSerializer
+
+    def get_queryset (self): 
+        return Task.objects.filter(reviewer = self.request.user)
