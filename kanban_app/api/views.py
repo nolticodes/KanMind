@@ -13,7 +13,7 @@ from django.db.models import Q
 from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
 
-from .permissions import IsBoardOwnerOrMember, IsMember, IsMemberForTask, IsTaskCreatorOrBoardOwner
+from .permissions import IsBoardOwnerOrMember, IsMember, IsMemberForTask, IsTaskCreatorOrBoardOwner, IsBoardMemberOfTask
 
 from .serializers import (
     GetBoardsListSerializer,
@@ -192,13 +192,11 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class CommentsListView(generics.ListCreateAPIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsBoardMemberOfTask]
     queryset = Comment.objects.all()
-    permission_classes = [AllowAny]
 
     def get_serializer_class(self):
-        if self.request.method == "GET":
-            return GetCommentsListSerializer
-
         if self.request.method == "POST":
             return PostCommentsInListSerializer
 
@@ -215,13 +213,12 @@ class CommentsListView(generics.ListCreateAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        queryset = task.comments.all().order_by("created_at")
-        serializer = GetCommentsListSerializer(queryset, many=True)
+        self.check_object_permissions(request, task)
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        comments = task.comments.all().order_by("created_at")
+        serializer = GetCommentsListSerializer(comments, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         task_id = kwargs.get("task_id")
@@ -234,20 +231,17 @@ class CommentsListView(generics.ListCreateAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+        self.check_object_permissions(request, task)
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        User = get_user_model()
-        test_user = User.objects.get(email="example@mail.de")
-
-        serializer.save(
+        comment = serializer.save(
             task=task,
-            author=test_user
+            author=request.user
         )
 
-        response_serializer = GetCommentsListSerializer(
-            serializer.instance
-        )
+        response_serializer = GetCommentsListSerializer(comment)
 
         return Response(
             response_serializer.data,
@@ -257,7 +251,8 @@ class CommentsListView(generics.ListCreateAPIView):
 
 class CommentIDView(generics.DestroyAPIView):
 
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsBoardMemberOfTask]
     queryset = Comment.objects.all()
     lookup_url_kwarg = "comment_id"
 
