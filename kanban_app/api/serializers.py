@@ -5,10 +5,10 @@ from auth_app.models import User
 
 
 class GetBoardsListSerializer(serializers.ModelSerializer):
-    member_count = serializers.SerializerMethodField()
-    ticket_count = serializers.SerializerMethodField()
-    tasks_to_do_count = serializers.SerializerMethodField()
-    tasks_high_prio_count = serializers.SerializerMethodField()
+    member_count = serializers.IntegerField(read_only = True)
+    ticket_count = serializers.IntegerField(read_only = True)
+    tasks_to_do_count = serializers.IntegerField(read_only = True)
+    tasks_high_prio_count = serializers.IntegerField(read_only = True)
 
     class Meta:
         model = Board
@@ -21,18 +21,6 @@ class GetBoardsListSerializer(serializers.ModelSerializer):
             'tasks_high_prio_count',
             'owner_id'
         ]
-
-    def get_member_count(self, obj):
-        return obj.members.count()
-
-    def get_ticket_count(self, obj):
-        return obj.tasks.count()
-
-    def get_tasks_to_do_count(self, obj):
-        return obj.tasks.filter(status="to-do").count()
-
-    def get_tasks_high_prio_count(self, obj):
-        return obj.tasks.filter(priority="high").count()
 
 
 class CreateBoardSerializer(serializers.ModelSerializer):
@@ -56,7 +44,7 @@ class BoardTaskInfoSerializer(serializers.ModelSerializer):
     assignee = UserSummarySerializer(read_only=True)
     reviewer = UserSummarySerializer(read_only=True)
 
-    comments_count = serializers.SerializerMethodField()
+    comments_count = serializers.IntegerField(read_only = True)
 
     class Meta:
         model = Task
@@ -71,9 +59,6 @@ class BoardTaskInfoSerializer(serializers.ModelSerializer):
             "due_date",
             "comments_count",
         ]
-
-    def get_comments_count(self, obj):
-        return 0
 
 
 class GetBoardDetailSerializer(serializers.ModelSerializer):
@@ -277,7 +262,7 @@ class GetTasksAssignedToMeSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    comments_count = serializers.SerializerMethodField()
+    comments_count = serializers.IntegerField(read_only = True)
 
     class Meta:
         model = Task
@@ -294,5 +279,3 @@ class GetTasksAssignedToMeSerializer(serializers.ModelSerializer):
             'comments_count'
         ]
 
-    def get_comments_count(self, obj):
-        return 0

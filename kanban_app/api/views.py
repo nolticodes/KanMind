@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model          # später entfernen
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from django.db.models import Q
+from django.db.models import Count, Q, Prefetch
 
 from kanban_app.models import Board, Task, Comment
 from auth_app.models import User
@@ -32,6 +32,29 @@ from .serializers import (
 )
 
 
+def boards_with_counts():
+    return Board.objects.annotate(
+        member_count=Count("members", distinct=True),
+        ticket_count=Count("tasks", distinct=True),
+        tasks_to_do_count=Count(
+            "tasks",
+            filter=Q(tasks__status="to-do"),
+            distinct=True,
+        ),
+        tasks_high_prio_count=Count(
+            "tasks",
+            filter=Q(tasks__priority="high"),
+            distinct=True,
+        ),
+    )
+
+
+def get_comments_counts():
+    return Task.objects.annotate(
+        comments_count=Count("comments", distinct=True)
+    )
+
+
 class BoardView(generics.ListCreateAPIView):
 
     queryset = Board.objects.all()
@@ -39,7 +62,7 @@ class BoardView(generics.ListCreateAPIView):
     permission_classes = [IsBoardOwnerOrMember]
 
     def get_queryset(self):
-        return Board.objects.filter(
+        return boards_with_counts().filter(
             Q(owner=self.request.user)
             | Q(members=self.request.user)
         ).distinct()
@@ -60,7 +83,9 @@ class BoardView(generics.ListCreateAPIView):
 
         self.perform_create(serializer)
 
-        response_serializer = GetBoardsListSerializer(serializer.instance)
+        board = boards_with_counts().get(pk=serializer.instance.pk)
+
+        response_serializer = GetBoardsListSerializer(board)
 
         return Response(
             response_serializer.data,
@@ -69,14 +94,21 @@ class BoardView(generics.ListCreateAPIView):
 
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
-
-    queryset = Board.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsBoardOwnerOrMember]
+
+    def get_queryset(self):
+        return Board.objects.prefetch_related(
+            Prefetch(
+                "tasks",
+                queryset=get_comments_counts()
+            )
+        )
 
     def get_serializer_class(self):
         if self.request.method == "GET":
             return GetBoardDetailSerializer
+
         if self.request.method == "PATCH":
             return PatchBoardDetailRequestSerializer
 
@@ -269,8 +301,11 @@ class AssigneeView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = GetTasksAssignedToMeSerializer
 
-    def get_queryset (self): 
-        return Task.objects.filter(assignee = self.request.user)
+    def get_queryset(self):
+        return get_comments_counts().filter(
+            assignee=self.request.user
+        )
+
 
 class ReviewerView(generics.ListAPIView):
 
@@ -278,5 +313,7 @@ class ReviewerView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = GetTasksAssignedToMeSerializer
 
-    def get_queryset (self): 
-        return Task.objects.filter(reviewer = self.request.user)
+    def get_queryset(self):
+        return get_comments_counts().filter(
+            reviewer=self.request.user
+        )
