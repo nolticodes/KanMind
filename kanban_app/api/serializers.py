@@ -266,3 +266,33 @@ class PostCommentsInListSerializer(serializers.ModelSerializer):
             'content'
         ]
 
+
+class GetTasksAssignedToMeSerializer(serializers.ModelSerializer):
+
+    assignee = UserSummarySerializer(
+        read_only=True
+    )
+    
+    reviewer = UserSummarySerializer(
+        read_only=True
+    )
+
+    comments_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Task
+        fields = [
+            'id',
+            'board',
+            'title',
+            'description',
+            'status',
+            'priority',
+            'assignee',
+            'reviewer',
+            'due_date',
+            'comments_count'
+        ]
+
+    def get_comments_count(self, obj):
+        return 0
