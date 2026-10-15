@@ -1,3 +1,5 @@
+"""Serializers for boards, tasks, comments, and user summary data."""
+
 from rest_framework import serializers
 
 from kanban_app.models import Board, Task, Comment
@@ -5,6 +7,8 @@ from auth_app.models import User
 
 
 class GetBoardsListSerializer(serializers.ModelSerializer):
+    """Serialize boards with annotated member and task count values."""
+
     member_count = serializers.IntegerField(read_only = True)
     ticket_count = serializers.IntegerField(read_only = True)
     tasks_to_do_count = serializers.IntegerField(read_only = True)
@@ -24,6 +28,7 @@ class GetBoardsListSerializer(serializers.ModelSerializer):
 
 
 class CreateBoardSerializer(serializers.ModelSerializer):
+    """Validate data required to create a new board."""
 
     class Meta:
         model = Board
@@ -31,6 +36,8 @@ class CreateBoardSerializer(serializers.ModelSerializer):
 
 
 class UserSummarySerializer(serializers.ModelSerializer):
+    """Serialize essential public information about a user."""
+
     class Meta:
         model = User
         fields = [
@@ -41,6 +48,8 @@ class UserSummarySerializer(serializers.ModelSerializer):
 
 
 class BoardTaskInfoSerializer(serializers.ModelSerializer):
+    """Serialize task information displayed within a board detail response."""
+
     assignee = UserSummarySerializer(read_only=True)
     reviewer = UserSummarySerializer(read_only=True)
 
@@ -62,6 +71,8 @@ class BoardTaskInfoSerializer(serializers.ModelSerializer):
 
 
 class GetBoardDetailSerializer(serializers.ModelSerializer):
+    """Serialize a board with its members and related tasks."""
+
     members = UserSummarySerializer(
         many=True,
         read_only=True
@@ -84,6 +95,8 @@ class GetBoardDetailSerializer(serializers.ModelSerializer):
 
 
 class PatchBoardDetailResponseSerializer(serializers.ModelSerializer):
+    """Serialize updated board data after a partial update."""
+
     owner_data = UserSummarySerializer(
         source="owner",
         read_only=True
@@ -106,6 +119,8 @@ class PatchBoardDetailResponseSerializer(serializers.ModelSerializer):
 
 
 class PatchBoardDetailRequestSerializer(serializers.ModelSerializer):
+    """Validate fields that can be partially updated on a board."""
+
     class Meta:
         model = Board
         fields = [
@@ -115,6 +130,8 @@ class PatchBoardDetailRequestSerializer(serializers.ModelSerializer):
 
 
 class PostTaskInBoardRequestSerializer(serializers.ModelSerializer):
+    """Validate data required to create a task within a board."""
+
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
         queryset=User.objects.all(),
@@ -144,6 +161,7 @@ class PostTaskInBoardRequestSerializer(serializers.ModelSerializer):
 
 
 class PostTaskInBoardResponseSerializer(serializers.ModelSerializer):
+    """Serialize a newly created task with related user information."""
 
     assignee = UserSummarySerializer(
         read_only=True
@@ -171,10 +189,12 @@ class PostTaskInBoardResponseSerializer(serializers.ModelSerializer):
         ]
 
     def get_comments_count(self, obj):
+        """Return the initial comment count for a newly created task."""
         return 0
 
 
 class PatchTaskInBoardRequestSerializer(serializers.ModelSerializer):
+    """Validate fields that can be partially updated on a task."""
 
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
@@ -204,6 +224,7 @@ class PatchTaskInBoardRequestSerializer(serializers.ModelSerializer):
 
 
 class PatchTaskInBoardResponseSerializer(serializers.ModelSerializer):
+    """Serialize task data after a partial update."""
 
     assignee = UserSummarySerializer(
         read_only=True
@@ -228,6 +249,7 @@ class PatchTaskInBoardResponseSerializer(serializers.ModelSerializer):
 
 
 class GetCommentsListSerializer(serializers.ModelSerializer):
+    """Serialize comments with the author's full name."""
 
     author = serializers.CharField(
         source="author.fullname",
@@ -243,7 +265,9 @@ class GetCommentsListSerializer(serializers.ModelSerializer):
             'content'
         ]
 
+
 class PostCommentsInListSerializer(serializers.ModelSerializer):
+    """Validate content for creating a new task comment."""
 
     class Meta:
         model = Comment
@@ -253,6 +277,7 @@ class PostCommentsInListSerializer(serializers.ModelSerializer):
 
 
 class GetTasksAssignedToMeSerializer(serializers.ModelSerializer):
+    """Serialize tasks assigned to or reviewed by the authenticated user."""
 
     assignee = UserSummarySerializer(
         read_only=True
@@ -278,4 +303,3 @@ class GetTasksAssignedToMeSerializer(serializers.ModelSerializer):
             'due_date',
             'comments_count'
         ]
-

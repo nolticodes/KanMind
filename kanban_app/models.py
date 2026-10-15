@@ -1,3 +1,5 @@
+"""Database models for boards, tasks, and comments."""
+
 from django.db import models
 from django.conf import settings
 
@@ -5,6 +7,8 @@ from django.conf import settings
 
 
 class Board(models.Model):
+    """Represent a board owned by a user and shared with members."""
+
     title = models.CharField(max_length=50)
 
     owner = models.ForeignKey(
@@ -20,6 +24,7 @@ class Board(models.Model):
 
 
 class Task(models.Model):
+    """Represent a task belonging to a board."""
 
     STATUS_CHOICES = [
         ("to-do", "To Do"),
@@ -61,6 +66,8 @@ class Task(models.Model):
 
 
 class Comment(models.Model):
+    """Represent a comment written by a user for a task."""
+
     created_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
