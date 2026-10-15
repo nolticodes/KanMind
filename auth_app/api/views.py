@@ -7,10 +7,24 @@ from rest_framework.response import Response
 from .serializers import RegistrationSerializer, LoginSerializer
 
 
+"""Views for user registration and token-based login."""
+
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+
+from .serializers import RegistrationSerializer, LoginSerializer
+
+
 class RegistrationView(APIView):
+    """Create a new user account and return an authentication token."""
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate registration data, create the account, and return its token."""
         serializer = RegistrationSerializer(data=request.data)
 
         data = {}
@@ -35,10 +49,13 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
+    """Authenticate a user and return an existing or newly created token."""
+
     authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """Validate login credentials and return the user's authentication token."""
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():

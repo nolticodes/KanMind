@@ -2,9 +2,16 @@ from rest_framework import serializers
 from auth_app.models import User
 
 
-class RegistrationSerializer(serializers.ModelSerializer):
+"""Serializers for user registration and authentication."""
 
-    repeated_password = serializers.CharField(write_only = True)
+from rest_framework import serializers
+from auth_app.models import User
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    """Validate and create a new user account."""
+
+    repeated_password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
@@ -16,11 +23,13 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate_email(self, value):
+        """Ensure that the provided email address is not already in use."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('Email already exists')
         return value
 
     def validate(self, attrs):
+        """Ensure that the password and repeated password match."""
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError(
                 {"error": "Passwords don't match"}
@@ -28,6 +37,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create a user with a securely hashed password."""
         validated_data.pop("repeated_password")
         password = validated_data.pop("password")
 
@@ -38,12 +48,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.ModelSerializer):
+    """Validate user credentials for the login process."""
 
     class Meta:
         model = User
         fields = ['email', 'password']
 
     def validate(self, attrs):
+        """Validate the email address and password and attach the user."""
         if not User.objects.filter(email=attrs["email"]).exists():
             raise serializers.ValidationError('Email does not exist')
 
