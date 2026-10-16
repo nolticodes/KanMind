@@ -48,12 +48,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-class LoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.Serializer):
     """Validate user credentials for the login process."""
 
-    class Meta:
-        model = User
-        fields = ['email', 'password']
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         """Validate the email address and password and attach the user."""
