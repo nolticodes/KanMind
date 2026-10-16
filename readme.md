@@ -44,6 +44,33 @@ Abhängigkeiten installieren:
 python3 -m pip install -r requirements.txt
 ```
 
+### Windows
+
+Virtuelle Umgebung erstellen und aktivieren:
+
+```powershell
+python -m venv env
+.\env\Scripts\Activate.ps1
+```
+
+Abhängigkeiten installieren:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+### Environment variables
+
+Create a `.env` file in the project root:
+
+```env
+SECRET_KEY=your-django-secret-key
+```
+
+The `.env` file is required locally but is excluded from version control.
+
+### macOS / Linux: Datenbank und Server
+
 Migrationen ausführen:
 
 ```bash
@@ -62,22 +89,7 @@ Server starten:
 python3 manage.py runserver
 ```
 
-Die API ist anschließend unter `http://127.0.0.1:8000/` erreichbar.
-
-### Windows
-
-Virtuelle Umgebung erstellen und aktivieren:
-
-```powershell
-python -m venv env
-.\env\Scripts\Activate.ps1
-```
-
-Abhängigkeiten installieren:
-
-```powershell
-python -m pip install -r requirements.txt
-```
+### Windows: Datenbank und Server
 
 Migrationen ausführen:
 
@@ -96,6 +108,8 @@ Server starten:
 ```powershell
 python manage.py runserver
 ```
+
+Die API ist anschließend unter [http://127.0.0.1:8000/](http://127.0.0.1:8000/) erreichbar.
 
 ## Authentifizierung
 
