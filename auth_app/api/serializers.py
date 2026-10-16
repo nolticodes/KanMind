@@ -42,6 +42,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         password = validated_data.pop("password")
 
         user = User(**validated_data)
+        user.username = validated_data['email']
         user.set_password(password)
         user.save()
         return user

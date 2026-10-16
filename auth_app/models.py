@@ -10,5 +10,5 @@ class User(AbstractUser):
     """Extend Django's default user model with full name and email fields."""
 
     fullname = models.CharField(max_length=50)
-    email = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100, unique=True)
     password = models.CharField(max_length=128)
